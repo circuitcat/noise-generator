@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Noise Helper – Sleep & Focus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg1: #0b1020;
+      --bg2: #182642;
+      --accent: #7fd1ff;
+      --accent-soft: rgba(127, 209, 255, 0.2);
+      --text-main: #f7f9ff;
+      --text-muted: #aab3d1;
+      --card-bg: rgba(9, 14, 30, 0.9);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --danger: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                   "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background: radial-gradient(circle at top, var(--bg2), var(--bg1) 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 520px;
+      margin: 1.5rem;
+      padding: 1.5rem 1.5rem 1.75rem;
+      border-radius: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(18px);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      margin: 0;
+      letter-spacing: 0.03em;
+    }
+
+    header p {
+      margin: 0.35rem 0 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: radial-gradient(circle at top left, #233a52, transparent);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      gap: 0.25rem;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(127, 209, 255, 0.8);
+    }
+
+    .play-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 1rem 0 0.75rem;
+    }
+
+    #playBtn {
+      border: none;
+      outline: none;
+      border-radius: 999px;
+      padding: 0.85rem 2.4rem;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: radial-gradient(circle at top, #2c74ff, #2852ff);
+      color: white;
+      box-shadow:
+        0 12px 28px rgba(33, 90, 255, 0.65),
+        0 0 0 1px rgba(255, 255, 255, 0.08);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition:
+        transform 0.12s ease-out,
+        box-shadow 0.12s ease-out,
+        background 0.12s ease-out;
+    }
+
+    #playBtn span.icon {
+      font-size: 1.1rem;
+      display: inline-block;
+      width: 1.2em;
+      text-align: center;
+    }
+
+    #playBtn:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 16px 40px rgba(33, 90, 255, 0.78),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    #playBtn:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow:
+        0 10px 24px rgba(33, 90, 255, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    #playBtn.playing {
+      background: radial-gradient(circle at top, #12b886, #0a996d);
+      box-shadow:
+        0 14px 32px rgba(16, 192, 134, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+      animation: pulse 2.7s ease-in-out infinite;
+    }
+
+    #playBtn.playing:hover {
+      box-shadow:
+        0 18px 45px rgba(16, 192, 134, 0.85),
+        0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+        box-shadow:
+          0 14px 32px rgba(16, 192, 134, 0.75),
+          0 0 0 0 rgba(18, 184, 134, 0.3);
+      }
+      50% {
+        transform: translateY(0) scale(1.03);
+        box-shadow:
+          0 22px 60px rgba(16, 192, 134, 0.9),
+          0 0 0 16px rgba(18, 184, 134, 0.0);
+      }
+    }
+
+    .section {
+      margin-top: 1.1rem;
+      padding-top: 0.9rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .type-row {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      flex: 1 1 calc(33% - 0.4rem);
+      min-width: 90px;
+      padding: 0.45rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: center;
+      transition:
+        background 0.12s ease-out,
+        border-color 0.12s ease-out,
+        color 0.12s ease-out,
+        transform 0.08s ease-out;
+      white-space: nowrap;
+    }
+
+    .chip span.label-main {
+      display: block;
+      font-weight: 500;
+    }
+
+    .chip span.label-sub {
+      display: block;
+      font-size: 0.7rem;
+      opacity: 0.9;
+      margin-top: 1px;
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      background: radial-gradient(circle at top left, rgba(127, 209, 255, 0.22), transparent);
+      color: var(--text-main);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    .chip:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .slider-header span.value {
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-soft), rgba(255,255,255,0.04));
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 6px rgba(127, 209, 255, 0.25);
+      cursor: pointer;
+      margin-top: -7px;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 6px rgba(127, 209, 255, 0.25);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-soft), rgba(255,255,255,0.04));
+    }
+
+    .timer-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .timer-btn {
+      flex: 1 1 calc(20% - 0.4rem);
+      min-width: 60px;
+      padding: 0.35rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      text-align: center;
+      transition:
+        background 0.12s ease-out,
+        border-color 0.12s ease-out,
+        color 0.12s ease-out,
+        transform 0.08s ease-out;
+      white-space: nowrap;
+    }
+
+    .timer-btn.active {
+      border-color: var(--accent);
+      background: radial-gradient(circle at top left, rgba(127, 209, 255, 0.2), transparent);
+      color: var(--text-main);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+    }
+
+    #timerStatus {
+      margin-top: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      min-height: 1.1em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    footer {
+      margin-top: 1.1rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    footer span {
+      opacity: 0.95;
+    }
+
+    .hint {
+      opacity: 0.75;
+    }
+
+    .warning {
+      color: var(--danger);
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        margin: 1rem;
+        padding: 1.25rem 1.1rem 1.4rem;
+        border-radius: 20px;
+      }
+      header h1 {
+        font-size: 1.35rem;
+      }
+      #playBtn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Noise Helper</h1>
+    <p>Gentle noise for sleep, study, and focus.</p>
+    <div class="pill">
+      <span class="pill-dot"></span>
+      <span>Audio is generated locally in your browser.</span>
+    </div>
+  </header>
+
+  <div class="play-wrapper">
+    <button id="playBtn">
+      <span class="icon">▶︎</span>
+      <span class="label">Play</span>
+    </button>
+  </div>
+
+  <section class="section" aria-label="Noise type">
+    <div class="section-title">Noise Type</div>
+    <div class="type-row" id="noiseTypeRow">
+      <button class="chip active" data-noise="white">
+        <span class="label-main">White</span>
+        <span class="label-sub">Bright & neutral</span>
+      </button>
+      <button class="chip" data-noise="pink">
+        <span class="label-main">Pink</span>
+        <span class="label-sub">Balanced hiss</span>
+      </button>
+      <button class="chip" data-noise="brown">
+        <span class="label-main">Brown</span>
+        <span class="label-sub">Deep & warm</span>
+      </button>
+      <button class="chip" data-noise="fan">
+        <span class="label-main">Fan</span>
+        <span class="label-sub">Soft whoosh</span>
+      </button>
+      <button class="chip" data-noise="rain">
+        <span class="label-main">Rain</span>
+        <span class="label-sub">Shhh… rainfall</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="section" aria-label="Volume">
+    <div class="section-title">Volume</div>
+    <div class="slider-row">
+      <div class="slider-header">
+        <span>Output level</span>
+        <span class="value" id="volumeLabel">60%</span>
+      </div>
+      <input type="range" id="volumeSlider" min="0" max="100" value="60" step="1">
+    </div>
+  </section>
+
+  <section class="section" aria-label="Timer">
+    <div class="section-title">Timer</div>
+    <div class="timer-row" id="timerRow">
+      <button class="timer-btn active" data-min="0">Off</button>
+      <button class="timer-btn" data-min="15">15 min</button>
+      <button class="timer-btn" data-min="30">30 min</button>
+      <button class="timer-btn" data-min="60">60 min</button>
+      <button class="timer-btn" data-min="90">90 min</button>
+    </div>
+    <div id="timerStatus">No timer set.</div>
+  </section>
+
+  <footer>
+    <span class="hint">Tip: For all-night use, keep your device on charge.</span>
+    <span class="warning">Always keep volume at a comfortable level.</span>
+  </footer>
+</div>
+
+<script>
+  const state = {
+    ctx: null,
+    masterGain: null,
+    source: null,
+    filters: [],
+    isPlaying: false,
+    noiseType: 'white',
+    volumeNorm: 0.6,
+    timerMinutes: 0,
+    timerEndMs: null,
+    timerIntervalId: null,
+    fadeInSeconds: 1.5,
+    fadeOutSeconds: 3.0
+  };
+
+  const els = {
+    playBtn: document.getElementById('playBtn'),
+    volumeSlider: document.getElementById('volumeSlider'),
+    volumeLabel: document.getElementById('volumeLabel'),
+    noiseTypeRow: document.getElementById('noiseTypeRow'),
+    timerRow: document.getElementById('timerRow'),
+    timerStatus: document.getElementById('timerStatus')
+  };
+
+  function ensureAudioContext() {
+    if (!state.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) {
+        alert('Your browser does not support the Web Audio API. Try a recent version of Chrome, Edge, Safari, or Firefox.');
+        return;
+      }
+      state.ctx = new AudioCtx();
+      state.masterGain = state.ctx.createGain();
+      state.masterGain.gain.value = state.volumeNorm;
+      state.masterGain.connect(state.ctx.destination);
+    }
+  }
+
+  function createNoiseSource() {
+    ensureAudioContext();
+    const ctx = state.ctx;
+    if (!ctx) return;
+
+    const bufferSize = 2 * ctx.sampleRate;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    let lastNode = source;
+    const filters = [];
+    const type = state.noiseType;
+
+    if (type === 'pink') {
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 2000;
+      lp.Q.value = 0.7;
+      lastNode.connect(lp);
+      lastNode = lp;
+      filters.push(lp);
+    } else if (type === 'brown') {
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 600;
+      lp.Q.value = 0.8;
+      lastNode.connect(lp);
+      lastNode = lp;
+      filters.push(lp);
+    } else if (type === 'fan') {
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1200;
+      lp.Q.value = 0.9;
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 120;
+      hp.Q.value = 0.7;
+      lastNode.connect(hp);
+      hp.connect(lp);
+      lastNode = lp;
+      filters.push(hp, lp);
+    } else if (type === 'rain') {
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 1000;
+      hp.Q.value = 0.8;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 8000;
+      lp.Q.value = 0.7;
+      lastNode.connect(hp);
+      hp.connect(lp);
+      lastNode = lp;
+      filters.push(hp, lp);
+    }
+
+    lastNode.connect(state.masterGain);
+
+    state.source = source;
+    state.filters = filters;
+  }
+
+  function teardownSource() {
+    if (state.source) {
+      try { state.source.stop(); } catch (e) {}
+      try { state.source.disconnect(); } catch (e) {}
+    }
+    state.filters.forEach(node => {
+      try { node.disconnect(); } catch (e) {}
+    });
+    state.source = null;
+    state.filters = [];
+  }
+
+  async function startNoise() {
+    ensureAudioContext();
+    const ctx = state.ctx;
+    if (!ctx) return;
+
+    if (ctx.state === 'suspended') {
+      try { await ctx.resume(); } catch (e) { console.warn(e); }
+    }
+
+    if (state.isPlaying) return;
+
+    createNoiseSource();
+    if (!state.source) return;
+
+    const now = ctx.currentTime;
+    const targetGain = state.volumeNorm;
+
+    state.masterGain.gain.cancelScheduledValues(now);
+    state.masterGain.gain.setValueAtTime(0.0001, now);
+    state.masterGain.gain.exponentialRampToValueAtTime(
+      Math.max(targetGain, 0.0001),
+      now + state.fadeInSeconds
+    );
+
+    state.source.start();
+    state.isPlaying = true;
+    updatePlayButtonUI();
+    setupOrRefreshTimer();
+  }
+
+  function stopNoise(withFade = true) {
+    const ctx = state.ctx;
+    if (!ctx || !state.isPlaying) {
+      clearTimerInterval();
+      state.isPlaying = false;
+      updatePlayButtonUI();
+      return;
+    }
+
+    const now = ctx.currentTime;
+    const fade = withFade ? state.fadeOutSeconds : 0;
+
+    if (fade > 0) {
+      const currentGain = state.masterGain.gain.value || state.volumeNorm;
+      state.masterGain.gain.cancelScheduledValues(now);
+      state.masterGain.gain.setValueAtTime(currentGain, now);
+      state.masterGain.gain.exponentialRampToValueAtTime(0.0001, now + fade);
+
+      setTimeout(() => {
+        teardownSource();
+        state.isPlaying = false;
+        const restoreTime = state.ctx.currentTime;
+        state.masterGain.gain.cancelScheduledValues(restoreTime);
+        state.masterGain.gain.setValueAtTime(state.volumeNorm, restoreTime);
+        updatePlayButtonUI();
+      }, fade * 1000 + 80);
+    } else {
+      teardownSource();
+      state.isPlaying = false;
+      const restoreTime = ctx.currentTime;
+      state.masterGain.gain.cancelScheduledValues(restoreTime);
+      state.masterGain.gain.setValueAtTime(state.volumeNorm, restoreTime);
+      updatePlayButtonUI();
+    }
+
+    clearTimerInterval();
+  }
+
+  function setTimerMinutes(min) {
+    state.timerMinutes = min;
+    state.timerEndMs = null;
+    saveToStorage('noise_timer_minutes', String(min));
+    updateTimerButtonsUI();
+    setupOrRefreshTimer();
+  }
+
+  function setupOrRefreshTimer() {
+    clearTimerInterval();
+    if (!state.isPlaying || state.timerMinutes <= 0) {
+      state.timerEndMs = null;
+      els.timerStatus.textContent = 'No timer set.';
+      return;
+    }
+
+    const now = Date.now();
+    const durationMs = state.timerMinutes * 60 * 1000;
+    state.timerEndMs = now + durationMs;
+
+    updateTimerStatus();
+
+    state.timerIntervalId = setInterval(() => {
+      if (!state.timerEndMs) {
+        clearTimerInterval();
+        return;
+      }
+      const remaining = state.timerEndMs - Date.now();
+      if (remaining <= 0) {
+        els.timerStatus.textContent = 'Timer finished.';
+        clearTimerInterval();
+        stopNoise(true);
+      } else {
+        updateTimerStatus();
+      }
+    }, 1000);
+  }
+
+  function updateTimerStatus() {
+    if (!state.timerEndMs || !state.isPlaying || state.timerMinutes <= 0) {
+      els.timerStatus.textContent = 'No timer set.';
+      return;
+    }
+    const remaining = Math.max(0, state.timerEndMs - Date.now());
+    const totalSec = Math.round(remaining / 1000);
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    const minStr = min.toString().padStart(2, '0');
+    const secStr = sec.toString().padStart(2, '0');
+    els.timerStatus.textContent = `Stops in ${minStr}:${secStr}`;
+  }
+
+  function clearTimerInterval() {
+    if (state.timerIntervalId) {
+      clearInterval(state.timerIntervalId);
+      state.timerIntervalId = null;
+    }
+  }
+
+  function updatePlayButtonUI() {
+    const btn = els.playBtn;
+    const icon = btn.querySelector('.icon');
+    const label = btn.querySelector('.label');
+
+    if (state.isPlaying) {
+      btn.classList.add('playing');
+      icon.textContent = '❚❚';
+      label.textContent = 'Pause';
+    } else {
+      btn.classList.remove('playing');
+      icon.textContent = '▶︎';
+      label.textContent = 'Play';
+    }
+  }
+
+  function updateVolumeUI(fromSliderValue) {
+    const v = Number(fromSliderValue);
+    const norm = Math.pow(v / 100, 1.2);
+    state.volumeNorm = norm;
+
+    els.volumeLabel.textContent = `${v}%`;
+
+    if (state.masterGain) {
+      const now = state.ctx ? state.ctx.currentTime : 0;
+      state.masterGain.gain.cancelScheduledValues(now);
+      state.masterGain.gain.setValueAtTime(norm || 0.0001, now + 0.01);
+    }
+
+    saveToStorage('noise_volume_slider', String(v));
+  }
+
+  function updateNoiseButtonsUI() {
+    const chips = els.noiseTypeRow.querySelectorAll('.chip');
+    chips.forEach(chip => {
+      const type = chip.getAttribute('data-noise');
+      chip.classList.toggle('active', type === state.noiseType);
+    });
+  }
+
+  function updateTimerButtonsUI() {
+    const buttons = els.timerRow.querySelectorAll('.timer-btn');
+    buttons.forEach(btn => {
+      const val = Number(btn.getAttribute('data-min'));
+      btn.classList.toggle('active', val === state.timerMinutes);
+    });
+  }
+
+  function saveToStorage(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {}
+  }
+
+  function readFromStorage(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setupEvents() {
+    els.playBtn.addEventListener('click', () => {
+      if (state.isPlaying) {
+        stopNoise(true);
+      } else {
+        startNoise();
+      }
+    });
+
+    els.noiseTypeRow.addEventListener('click', (ev) => {
+      const chip = ev.target.closest('.chip');
+      if (!chip) return;
+      const type = chip.getAttribute('data-noise');
+      if (!type || type === state.noiseType) return;
+
+      state.noiseType = type;
+      saveToStorage('noise_type', type);
+      updateNoiseButtonsUI();
+
+      if (state.isPlaying) {
+        stopNoise(false);
+        setTimeout(() => {
+          startNoise();
+        }, 80);
+      }
+    });
+
+    els.volumeSlider.addEventListener('input', () => {
+      updateVolumeUI(els.volumeSlider.value);
+    });
+
+    els.timerRow.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.timer-btn');
+      if (!btn) return;
+      const min = Number(btn.getAttribute('data-min')) || 0;
+      if (min === state.timerMinutes) return;
+      setTimerMinutes(min);
+    });
+  }
+
+  function initFromStorage() {
+    const storedType = readFromStorage('noise_type');
+    const storedVolSlider = readFromStorage('noise_volume_slider');
+    const storedTimer = readFromStorage('noise_timer_minutes');
+
+    if (storedType) {
+      state.noiseType = storedType;
+    }
+    if (storedVolSlider != null) {
+      const numeric = Number(storedVolSlider);
+      els.volumeSlider.value = Number.isFinite(numeric) ? numeric : 60;
+    }
+    updateVolumeUI(els.volumeSlider.value);
+
+    if (storedTimer != null) {
+      const min = Number(storedTimer);
+      if (Number.isFinite(min) && min >= 0) {
+        state.timerMinutes = min;
+      }
+    }
+
+    updateNoiseButtonsUI();
+    updateTimerButtonsUI();
+    els.timerStatus.textContent = state.timerMinutes > 0
+      ? `Timer set to ${state.timerMinutes} min. Starts when playback begins.`
+      : 'No timer set.';
+  }
+
+  window.addEventListener('load', () => {
+    initFromStorage();
+    setupEvents();
+    updatePlayButtonUI();
+  });
+</script>
+</body>
+</html>

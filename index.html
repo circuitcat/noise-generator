@@ -459,7 +459,8 @@
     timerEndMs: null,
     timerIntervalId: null,
     fadeInSeconds: 1.5,
-    fadeOutSeconds: 3.0
+    fadeOutSeconds: 3.0,
+    wakeLock: null
   };
 
   const els = {
@@ -482,6 +483,39 @@
       state.masterGain = state.ctx.createGain();
       state.masterGain.gain.value = state.volumeNorm;
       state.masterGain.connect(state.ctx.destination);
+    }
+  }
+
+  async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    if (state.wakeLock) return; // already active
+
+    try {
+      state.wakeLock = await navigator.wakeLock.request('screen');
+      state.wakeLock.addEventListener('release', () => {
+        state.wakeLock = null;
+      });
+      console.log('Wake Lock active');
+    } catch (err) {
+      state.wakeLock = null;
+    }
+  }
+
+  async function releaseWakeLock() {
+    if (!state.wakeLock) return;
+
+    try {
+      await state.wakeLock.release();
+      state.wakeLock = null;
+      console.log('Wake Lock released');
+    } catch (err) {
+      state.wakeLock = null;
+    }
+  }
+
+  function handleVisibilityChange() {
+    if (document.visibilityState === 'visible' && state.isPlaying) {
+      requestWakeLock();
     }
   }
 
@@ -595,6 +629,7 @@
     state.isPlaying = true;
     updatePlayButtonUI();
     setupOrRefreshTimer();
+    requestWakeLock();
   }
 
   function stopNoise(withFade = true) {
@@ -622,6 +657,7 @@
         state.masterGain.gain.cancelScheduledValues(restoreTime);
         state.masterGain.gain.setValueAtTime(state.volumeNorm, restoreTime);
         updatePlayButtonUI();
+        releaseWakeLock();
       }, fade * 1000 + 80);
     } else {
       teardownSource();
@@ -630,6 +666,7 @@
       state.masterGain.gain.cancelScheduledValues(restoreTime);
       state.masterGain.gain.setValueAtTime(state.volumeNorm, restoreTime);
       updatePlayButtonUI();
+      releaseWakeLock();
     }
 
     clearTimerInterval();
@@ -828,6 +865,8 @@
     initFromStorage();
     setupEvents();
     updatePlayButtonUI();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', releaseWakeLock);
   });
 </script>
 </body>

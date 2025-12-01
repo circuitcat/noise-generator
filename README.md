@@ -1,39 +1,78 @@
-# Noise Helper
+# Noise Generator
 
-A beautiful, privacy-focused web app for generating ambient noise to help with sleep, study, and focus. All audio is generated locally in your browser using the Web Audio API—no server, no downloads, no tracking.
+A collection of beautiful, privacy-focused web apps for generating ambient sounds. All audio is generated locally in your browser using the Web Audio API—no server, no downloads, no tracking.
 
-## Features
+## Apps
 
-### 🎵 Five Noise Types
+### 🎵 Noise Helper (`index.html`)
+A simple, elegant noise generator for sleep, study, and focus.
+
+#### Features
+
+**Five Noise Types:**
 - **White Noise** - Bright and neutral, perfect for masking distractions
 - **Pink Noise** - Balanced hiss, often preferred for sleep
 - **Brown Noise** - Deep and warm, lower frequencies for relaxation
 - **Fan** - Soft whoosh, simulating a gentle fan
 - **Rain** - Rainfall sounds for a calming atmosphere
 
-### 🔊 Volume Control
+**Volume Control:**
 - Adjustable volume slider (0-100%)
 - Smooth volume transitions
 - Settings persist across sessions
 
-### ⏱️ Timer
+**Timer:**
 - Set automatic stop times: 15, 30, 60, or 90 minutes
 - Real-time countdown display
 - Automatic fade-out when timer completes
 
-### 📱 Mobile Optimized
+**Mobile Optimized:**
 - **Wake Lock API** - Prevents iPhone from sleeping while noise is playing (iOS 16.4+)
 - Responsive design that works beautifully on all screen sizes
 - Touch-friendly controls
 
-### 🔒 Privacy First
+**Privacy First:**
 - All audio generated locally in your browser
 - No network requests after initial page load
 - No data collection or tracking
 - Settings stored locally in your browser
 
+### 🌬️ Wind Chimes Synth (`wind-chime.html`)
+A rich, feature-complete wind chime synthesizer with extensive controls for creating authentic ambient chime sounds.
+
+#### Features
+
+**Scale System:**
+- Six scale presets: Pentatonic, Japanese Pentatonic, Major, Minor, Whole Tone
+- Custom scale builder with visual piano keyboard interface
+- Pitch transposition (±12 semitones)
+- Root note selection
+
+**Material Presets:**
+- Metal Tubes (default)
+- Bamboo Tubes
+- Glass Tubes
+- Wooden Bars
+- Aluminum Bars
+- Custom material with adjustable partial ratios and amplitudes
+
+**Advanced Controls:**
+- Sustain control (0.5-10 seconds)
+- Strike force variability (range and randomness)
+- Enhanced wind patterns: Steady, Gusty, Calm, Stormy
+- Gust probability and stereo spread
+- Number of chimes (3-12)
+- Reverb effect
+- Quick presets: Zen Garden, Storm, Meditation
+
+**Full State Management:**
+- All settings persist to localStorage
+- Wake Lock API integration for mobile devices
+- Responsive dark theme UI
+
 ## How to Use
 
+### Noise Helper
 1. Open `index.html` in a modern web browser
 2. Select your preferred noise type
 3. Adjust the volume to a comfortable level
@@ -41,6 +80,15 @@ A beautiful, privacy-focused web app for generating ambient noise to help with s
 5. Click **Play** to start
 
 The app will remember your preferences (noise type, volume, timer) for your next visit.
+
+### Wind Chimes Synth
+1. Open `wind-chime.html` in a modern web browser
+2. Select a scale (or create a custom one using the piano keyboard)
+3. Choose a material preset
+4. Adjust sustain, strike force, and wind controls to your preference
+5. Click **Play** to start
+
+All settings are automatically saved and restored on your next visit.
 
 ## Technical Details
 
@@ -78,7 +126,7 @@ The app gracefully degrades on unsupported browsers—all features work except W
 No build process or dependencies required! Just:
 
 1. Clone or download this repository
-2. Open `index.html` in your web browser
+2. Open any HTML file in your web browser
 3. That's it!
 
 For local development, you can use any static file server:
@@ -100,11 +148,12 @@ Then open `http://localhost:8000` in your browser.
 
 ```
 noise-generator/
-├── index.html    # Single-file application (HTML, CSS, JavaScript)
-└── README.md     # This file
+├── index.html      # Noise Helper app (HTML, CSS, JavaScript)
+├── wind-chime.html  # Wind Chimes Synth app (HTML, CSS, JavaScript)
+└── README.md        # This file
 ```
 
-The entire application is contained in a single HTML file for maximum portability and simplicity.
+Each application is contained in a single HTML file for maximum portability and simplicity.
 
 ## License
 

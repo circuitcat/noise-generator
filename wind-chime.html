@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wind Chimes Synth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg1: #0b1020;
+      --bg2: #182642;
+      --accent: #7fd1ff;
+      --accent-soft: rgba(127, 209, 255, 0.2);
+      --text-main: #f7f9ff;
+      --text-muted: #aab3d1;
+      --card-bg: rgba(9, 14, 30, 0.9);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --danger: #ff6b6b;
+      --success: #12b886;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                   "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background: radial-gradient(circle at top, var(--bg2), var(--bg1) 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 600px;
+      padding: 1.5rem 1.5rem 1.75rem;
+      border-radius: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(18px);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      margin: 0;
+      letter-spacing: 0.03em;
+    }
+
+    header p {
+      margin: 0.35rem 0 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .play-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 1rem 0 0.75rem;
+      gap: 0.75rem;
+    }
+
+    button {
+      border: none;
+      outline: none;
+      border-radius: 999px;
+      padding: 0.85rem 2.4rem;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition:
+        transform 0.12s ease-out,
+        box-shadow 0.12s ease-out,
+        background 0.12s ease-out;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button#start {
+      background: radial-gradient(circle at top, #2c74ff, #2852ff);
+      color: white;
+      box-shadow:
+        0 12px 28px rgba(33, 90, 255, 0.65),
+        0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    button#start:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 16px 40px rgba(33, 90, 255, 0.78),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    button#start.playing {
+      background: radial-gradient(circle at top, #12b886, #0a996d);
+      box-shadow:
+        0 14px 32px rgba(16, 192, 134, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    button#stop {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+    }
+
+    button#stop:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .section {
+      margin-top: 1.1rem;
+      padding-top: 0.9rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .slider-header span.value {
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-soft), rgba(255,255,255,0.04));
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 6px rgba(127, 209, 255, 0.25);
+      cursor: pointer;
+      margin-top: -7px;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      appearance: none;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 6px rgba(127, 209, 255, 0.25);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-soft), rgba(255,255,255,0.04));
+    }
+
+    select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.12s ease-out, background 0.12s ease-out;
+    }
+
+    select:hover {
+      border-color: var(--accent-soft);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    .scale-row {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .chip {
+      flex: 1 1 calc(33% - 0.4rem);
+      min-width: 90px;
+      padding: 0.45rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: center;
+      transition:
+        background 0.12s ease-out,
+        border-color 0.12s ease-out,
+        color 0.12s ease-out,
+        transform 0.08s ease-out;
+      white-space: nowrap;
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      background: radial-gradient(circle at top left, rgba(127, 209, 255, 0.22), transparent);
+      color: var(--text-main);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    .chip:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .keyboard-container {
+      margin-top: 0.75rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .keyboard {
+      display: flex;
+      gap: 0;
+      justify-content: center;
+      position: relative;
+      height: 120px;
+    }
+
+    .key {
+      position: relative;
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    .key.white {
+      width: 28px;
+      height: 120px;
+      background: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 0 0 4px 4px;
+      z-index: 1;
+    }
+
+    .key.white:hover {
+      background: #f0f0f0;
+    }
+
+    .key.white.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .key.black {
+      position: absolute;
+      width: 18px;
+      height: 75px;
+      background: #333;
+      border: 1px solid #222;
+      border-radius: 0 0 3px 3px;
+      z-index: 2;
+      top: 0;
+    }
+
+    .key.black:hover {
+      background: #444;
+    }
+
+    .key.black.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .keyboard-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    .preset-row {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .preset-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    #status {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      color: var(--text-muted);
+      min-height: 1.2em;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      color: var(--text-muted);
+      text-align: center;
+      opacity: 0.75;
+    }
+
+    .custom-material-controls {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        margin: 0;
+        padding: 1.25rem 1.1rem 1.4rem;
+        border-radius: 20px;
+      }
+      header h1 {
+        font-size: 1.35rem;
+      }
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Wind Chimes Synth</h1>
+      <p>Rich ambient chimes with full control</p>
+    </header>
+
+    <div class="play-wrapper">
+      <button id="start">▶ Play</button>
+      <button id="stop">Stop</button>
+    </div>
+
+    <section class="section" aria-label="Scale & Pitch">
+      <div class="section-title">Scale & Pitch</div>
+      <div class="scale-row" id="scaleRow">
+        <button class="chip active" data-scale="pentatonic">Pentatonic</button>
+        <button class="chip" data-scale="japanese">Japanese</button>
+        <button class="chip" data-scale="major">Major</button>
+        <button class="chip" data-scale="minor">Minor</button>
+        <button class="chip" data-scale="whole-tone">Whole Tone</button>
+        <button class="chip" data-scale="custom">Custom</button>
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Transpose</span>
+          <span class="value" id="transposeValue">0 semitones</span>
+        </div>
+        <input type="range" id="transpose" min="-12" max="12" step="1" value="0" />
+      </div>
+      <div id="customScaleContainer" style="display: none;">
+        <div class="keyboard-container">
+          <div class="keyboard" id="keyboard"></div>
+          <div class="keyboard-label">Click notes to add/remove from scale</div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span>Root Note</span>
+            <span class="value" id="rootNoteValue">C</span>
+          </div>
+          <select id="rootNote">
+            <option value="C">C</option>
+            <option value="C#">C#</option>
+            <option value="D">D</option>
+            <option value="D#">D#</option>
+            <option value="E">E</option>
+            <option value="F">F</option>
+            <option value="F#">F#</option>
+            <option value="G">G</option>
+            <option value="G#">G#</option>
+            <option value="A">A</option>
+            <option value="A#">A#</option>
+            <option value="B">B</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-label="Material & Sustain">
+      <div class="section-title">Material & Sustain</div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Material</span>
+        </div>
+        <select id="material">
+          <option value="metal-tubes">Metal Tubes</option>
+          <option value="bamboo">Bamboo Tubes</option>
+          <option value="glass">Glass Tubes</option>
+          <option value="wood-bars">Wooden Bars</option>
+          <option value="aluminum-bars">Aluminum Bars</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div id="customMaterialContainer" style="display: none;">
+        <div class="custom-material-controls">
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Partial 1 Ratio</span>
+              <span class="value" id="partial1RatioValue">1.0</span>
+            </div>
+            <input type="range" id="partial1Ratio" min="0.5" max="2" step="0.01" value="1.0" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Partial 2 Ratio</span>
+              <span class="value" id="partial2RatioValue">2.756</span>
+            </div>
+            <input type="range" id="partial2Ratio" min="1" max="5" step="0.01" value="2.756" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Partial 3 Ratio</span>
+              <span class="value" id="partial3RatioValue">5.404</span>
+            </div>
+            <input type="range" id="partial3Ratio" min="2" max="10" step="0.01" value="5.404" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Partial 1 Amp</span>
+              <span class="value" id="partial1AmpValue">1.0</span>
+            </div>
+            <input type="range" id="partial1Amp" min="0" max="2" step="0.01" value="1.0" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Partial 2 Amp</span>
+              <span class="value" id="partial2AmpValue">0.55</span>
+            </div>
+            <input type="range" id="partial2Amp" min="0" max="2" step="0.01" value="0.55" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Partial 3 Amp</span>
+              <span class="value" id="partial3AmpValue">0.3</span>
+            </div>
+            <input type="range" id="partial3Amp" min="0" max="2" step="0.01" value="0.3" />
+          </div>
+        </div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Sustain</span>
+          <span class="value" id="sustainValue">4.0s</span>
+        </div>
+        <input type="range" id="sustain" min="0.5" max="10" step="0.1" value="4.0" />
+      </div>
+    </section>
+
+    <section class="section" aria-label="Strike Force">
+      <div class="section-title">Strike Force</div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Force Range</span>
+          <span class="value" id="forceRangeValue">0.7 - 1.3</span>
+        </div>
+        <input type="range" id="forceRange" min="0.3" max="1.5" step="0.05" value="1.0" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Force Variability</span>
+          <span class="value" id="forceVariabilityValue">0.5</span>
+        </div>
+        <input type="range" id="forceVariability" min="0" max="1" step="0.01" value="0.5" />
+      </div>
+    </section>
+
+    <section class="section" aria-label="Wind Control">
+      <div class="section-title">Wind Control</div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Wind Intensity</span>
+          <span class="value" id="windValue">0.50</span>
+        </div>
+        <input type="range" id="wind" min="0" max="1" step="0.01" value="0.5" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Wind Pattern</span>
+        </div>
+        <select id="windPattern">
+          <option value="steady">Steady</option>
+          <option value="gusty">Gusty</option>
+          <option value="calm">Calm</option>
+          <option value="stormy">Stormy</option>
+        </select>
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Gust Probability</span>
+          <span class="value" id="gustProbValue">35%</span>
+        </div>
+        <input type="range" id="gustProb" min="0" max="100" step="1" value="35" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Stereo Spread</span>
+          <span class="value" id="stereoSpreadValue">1.0</span>
+        </div>
+        <input type="range" id="stereoSpread" min="0" max="1" step="0.01" value="1.0" />
+      </div>
+    </section>
+
+    <section class="section" aria-label="Advanced">
+      <div class="section-title">Advanced</div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Number of Chimes</span>
+          <span class="value" id="chimeCountValue">6</span>
+        </div>
+        <input type="range" id="chimeCount" min="3" max="12" step="1" value="6" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Reverb</span>
+          <span class="value" id="reverbValue">0.0</span>
+        </div>
+        <input type="range" id="reverb" min="0" max="1" step="0.01" value="0.0" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Volume</span>
+          <span class="value" id="volumeValue">0.60</span>
+        </div>
+        <input type="range" id="volume" min="0" max="1" step="0.01" value="0.6" />
+      </div>
+    </section>
+
+    <section class="section" aria-label="Presets">
+      <div class="section-title">Presets</div>
+      <div class="preset-row">
+        <button class="chip preset-btn" data-preset="zen">Zen Garden</button>
+        <button class="chip preset-btn" data-preset="storm">Storm</button>
+        <button class="chip preset-btn" data-preset="meditation">Meditation</button>
+        <button class="chip preset-btn" data-preset="default">Reset</button>
+      </div>
+    </section>
+
+    <div id="status">Tap "Play" to begin</div>
+    <div class="hint">
+      Leave this tab open and your device awake<br />
+      Rich controls for authentic wind chime sounds
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const state = {
+        audioCtx: null,
+        masterGain: null,
+        reverbNode: null,
+        running: false,
+        schedulerId: null,
+        wakeLock: null,
+        scale: 'pentatonic',
+        transpose: 0,
+        rootNote: 'C',
+        customScale: [],
+        material: 'metal-tubes',
+        sustain: 4.0,
+        forceRange: 1.0,
+        forceVariability: 0.5,
+        windLevel: 0.5,
+        windPattern: 'gusty',
+        gustProb: 0.35,
+        stereoSpread: 1.0,
+        chimeCount: 6,
+        reverb: 0.0,
+        volume: 0.6,
+        customMaterial: {
+          ratios: [1.0, 2.756, 5.404, 8.93],
+          amps: [1.0, 0.55, 0.3, 0.2]
+        }
+      };
+
+      // Scale definitions
+      const scales = {
+        pentatonic: [0, 2, 4, 7, 9], // C, D, E, G, A
+        japanese: [2, 4, 7, 9, 11], // D, E, G, A, B (In scale)
+        major: [0, 2, 4, 5, 7, 9, 11], // C, D, E, F, G, A, B
+        minor: [0, 2, 3, 5, 7, 8, 10], // C, D, Eb, F, G, Ab, Bb
+        'whole-tone': [0, 2, 4, 6, 8, 10] // C, D, E, F#, G#, A#
+      };
+
+      // Material presets
+      const materials = {
+        'metal-tubes': {
+          ratios: [1.0, 2.756, 5.404, 8.93],
+          amps: [1.0, 0.55, 0.3, 0.2]
+        },
+        'bamboo': {
+          ratios: [1.0, 2.3, 4.8, 7.5],
+          amps: [1.0, 0.4, 0.25, 0.15]
+        },
+        'glass': {
+          ratios: [1.0, 2.9, 5.8, 9.2],
+          amps: [1.0, 0.65, 0.4, 0.25]
+        },
+        'wood-bars': {
+          ratios: [1.0, 2.76, 5.40, 8.93],
+          amps: [1.0, 0.35, 0.2, 0.12]
+        },
+        'aluminum-bars': {
+          ratios: [1.0, 2.756, 5.404, 8.93],
+          amps: [1.0, 0.5, 0.28, 0.18]
+        }
+      };
+
+      // Note names
+      const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const A4 = 440; // A4 frequency
+
+      // Get frequency from note name and octave
+      function getFrequency(note, octave = 4) {
+        const noteIndex = noteNames.indexOf(note);
+        if (noteIndex === -1) return A4;
+        const semitonesFromA4 = noteIndex - 9 + (octave - 4) * 12;
+        return A4 * Math.pow(2, semitonesFromA4 / 12);
+      }
+
+      // Generate chime frequencies from scale
+      function generateScaleFrequencies() {
+        let scaleNotes = [];
+        
+        if (state.scale === 'custom') {
+          if (state.customScale.length === 0) {
+            // Default to pentatonic if custom is empty
+            scaleNotes = scales.pentatonic;
+          } else {
+            scaleNotes = state.customScale;
+          }
+        } else {
+          scaleNotes = scales[state.scale] || scales.pentatonic;
+        }
+
+        const rootIndex = noteNames.indexOf(state.rootNote);
+        const transposeSemitones = state.transpose;
+        
+        const frequencies = [];
+        const octaves = [4, 5]; // Use two octaves
+        
+        octaves.forEach(octave => {
+          scaleNotes.forEach(semitone => {
+            const noteIndex = (rootIndex + semitone + transposeSemitones) % 12;
+            const octaveOffset = Math.floor((rootIndex + semitone + transposeSemitones) / 12);
+            const finalOctave = octave + octaveOffset;
+            const note = noteNames[noteIndex];
+            frequencies.push(getFrequency(note, finalOctave));
+          });
+        });
+
+        // Sort and take first N chimes
+        frequencies.sort((a, b) => a - b);
+        return frequencies.slice(0, state.chimeCount);
+      }
+
+      // Get material preset
+      function getMaterialPreset() {
+        if (state.material === 'custom') {
+          return {
+            ratios: state.customMaterial.ratios,
+            amps: state.customMaterial.amps
+          };
+        }
+        return materials[state.material] || materials['metal-tubes'];
+      }
+
+      // Apply strike force
+      function applyStrikeForce(baseAmp, force) {
+        const minForce = Math.max(0.3, state.forceRange - state.forceVariability);
+        const maxForce = Math.min(1.5, state.forceRange + state.forceVariability);
+        const forceMultiplier = minForce + (maxForce - minForce) * force;
+        return baseAmp * forceMultiplier;
+      }
+
+      // Calculate wind interval based on pattern
+      function calculateWindInterval(windLevel, pattern) {
+        const w = Math.max(0.05, windLevel);
+        let slowInterval, fastInterval;
+
+        switch (pattern) {
+          case 'steady':
+            slowInterval = 2.5;
+            fastInterval = 0.8;
+            break;
+          case 'gusty':
+            slowInterval = 3.0;
+            fastInterval = 0.30;
+            break;
+          case 'calm':
+            slowInterval = 5.0;
+            fastInterval = 1.5;
+            break;
+          case 'stormy':
+            slowInterval = 1.5;
+            fastInterval = 0.15;
+            break;
+          default:
+            slowInterval = 3.0;
+            fastInterval = 0.30;
+        }
+
+        const baseInterval = slowInterval - (slowInterval - fastInterval) * w;
+        const jitter = (Math.random() - 0.5) * baseInterval * 0.5;
+        return Math.max(0.1, baseInterval + jitter);
+      }
+
+      // Wake Lock functions
+      async function requestWakeLock() {
+        if (!('wakeLock' in navigator)) return;
+        if (state.wakeLock) return;
+
+        try {
+          state.wakeLock = await navigator.wakeLock.request('screen');
+          state.wakeLock.addEventListener('release', () => {
+            state.wakeLock = null;
+          });
+          console.log('Wake Lock active');
+        } catch (err) {
+          state.wakeLock = null;
+        }
+      }
+
+      async function releaseWakeLock() {
+        if (!state.wakeLock) return;
+        try {
+          await state.wakeLock.release();
+          state.wakeLock = null;
+          console.log('Wake Lock released');
+        } catch (err) {
+          state.wakeLock = null;
+        }
+      }
+
+      function handleVisibilityChange() {
+        if (document.visibilityState === 'visible' && state.running) {
+          requestWakeLock();
+        }
+      }
+
+      // Setup audio
+      function setupAudio() {
+        if (!state.audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          state.audioCtx = new AC();
+
+          state.masterGain = state.audioCtx.createGain();
+          state.masterGain.gain.value = state.volume;
+          
+          // Reverb setup
+          if (state.reverb > 0) {
+            state.reverbNode = state.audioCtx.createConvolver();
+            // Simple reverb using delay and feedback
+            const delay = state.audioCtx.createDelay();
+            delay.delayTime.value = 0.1;
+            const feedback = state.audioCtx.createGain();
+            feedback.gain.value = state.reverb * 0.3;
+            const reverbGain = state.audioCtx.createGain();
+            reverbGain.gain.value = state.reverb;
+
+            state.masterGain.connect(delay);
+            delay.connect(feedback);
+            feedback.connect(delay);
+            delay.connect(reverbGain);
+            reverbGain.connect(state.audioCtx.destination);
+            
+            const dryGain = state.audioCtx.createGain();
+            dryGain.gain.value = 1 - state.reverb * 0.5;
+            state.masterGain.connect(dryGain);
+            dryGain.connect(state.audioCtx.destination);
+          } else {
+            state.masterGain.connect(state.audioCtx.destination);
+          }
+        }
+      }
+
+      // Update reverb
+      function updateReverb() {
+        // Reverb is handled in setupAudio, but we'd need to recreate nodes
+        // For simplicity, we'll just update the gain if reverb node exists
+      }
+
+      // Strike chime
+      function strikeChime() {
+        if (!state.audioCtx || !state.masterGain) return;
+
+        const chimes = generateScaleFrequencies();
+        const chime = chimes[Math.floor(Math.random() * chimes.length)];
+        const t0 = state.audioCtx.currentTime;
+
+        // Random detune
+        const detuneFactor = Math.pow(2, (Math.random() - 0.5) * (5 / 1200));
+
+        // Strike force (0 to 1)
+        const strikeForce = Math.random();
+
+        // Stereo panning
+        const panner = state.audioCtx.createStereoPanner();
+        const panValue = (Math.random() * 2 - 1) * state.stereoSpread;
+        panner.pan.value = panValue;
+        panner.connect(state.masterGain);
+
+        const material = getMaterialPreset();
+        const modeRatios = material.ratios;
+        const modeAmps = material.amps;
+
+        modeRatios.forEach((ratio, i) => {
+          const osc = state.audioCtx.createOscillator();
+          const gain = state.audioCtx.createGain();
+
+          const freq = chime * ratio * detuneFactor;
+          // Slight pitch variation based on strike force
+          const pitchVariation = Math.pow(2, (strikeForce - 0.5) * 0.02);
+          osc.frequency.setValueAtTime(freq * pitchVariation, t0);
+          osc.type = "sine";
+
+          const baseAmp = modeAmps[i] ?? 0.1;
+          const amp = applyStrikeForce(baseAmp, strikeForce);
+          
+          // Attack time based on strike force (harder = faster attack)
+          const attackTime = 0.01 + (1 - strikeForce) * 0.05;
+          const decay = state.sustain / (1 + i * 0.7);
+
+          // Envelope with attack
+          gain.gain.setValueAtTime(0.0001, t0);
+          gain.gain.linearRampToValueAtTime(amp, t0 + attackTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t0 + attackTime + decay);
+
+          osc.connect(gain);
+          gain.connect(panner);
+
+          osc.start(t0);
+          osc.stop(t0 + attackTime + decay + 0.2);
+        });
+      }
+
+      // Schedule next strike
+      function scheduleNextStrike() {
+        if (!state.running || !state.audioCtx) return;
+
+        const delay = calculateWindInterval(state.windLevel, state.windPattern);
+        
+        strikeChime();
+
+        // Gust probability
+        if (Math.random() < state.gustProb) {
+          const extraDelayMs = 60 + Math.random() * 150;
+          setTimeout(() => {
+            if (state.running) strikeChime();
+          }, extraDelayMs);
+        }
+
+        state.schedulerId = setTimeout(scheduleNextStrike, delay * 1000);
+      }
+
+      // Render keyboard
+      function renderKeyboard() {
+        const keyboard = document.getElementById('keyboard');
+        keyboard.innerHTML = '';
+
+        const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        const whiteKeyWidth = 28;
+        const blackKeyWidth = 18;
+        const totalWhiteWidth = whiteKeys.length * whiteKeyWidth;
+        
+        // Map black keys to their positions
+        // Format: [blackKeyNote, whiteKeyIndex]
+        const blackKeyPositions = [
+          ['C#', 0], // Between C (0) and D (1)
+          ['D#', 1], // Between D (1) and E (2)
+          ['F#', 3], // Between F (3) and G (4)
+          ['G#', 4], // Between G (4) and A (5)
+          ['A#', 5]  // Between A (5) and B (6)
+        ];
+
+        // Render white keys
+        whiteKeys.forEach((note, i) => {
+          const key = document.createElement('div');
+          key.className = 'key white';
+          key.dataset.note = note;
+          if (state.customScale.includes(noteNames.indexOf(note))) {
+            key.classList.add('selected');
+          }
+          key.addEventListener('click', () => {
+            const noteIndex = noteNames.indexOf(note);
+            const index = state.customScale.indexOf(noteIndex);
+            if (index > -1) {
+              state.customScale.splice(index, 1);
+              key.classList.remove('selected');
+            } else {
+              state.customScale.push(noteIndex);
+              key.classList.add('selected');
+            }
+            state.customScale.sort((a, b) => a - b);
+            saveToStorage('wind_chime_custom_scale', JSON.stringify(state.customScale));
+          });
+          keyboard.appendChild(key);
+        });
+
+        // Render black keys positioned absolutely
+        // Use requestAnimationFrame to ensure white keys are laid out first
+        requestAnimationFrame(() => {
+          const whiteKeyElements = keyboard.querySelectorAll('.key.white');
+          if (whiteKeyElements.length === 0) return;
+          
+          const firstWhiteKey = whiteKeyElements[0];
+          const firstWhiteKeyRect = firstWhiteKey.getBoundingClientRect();
+          const keyboardRect = keyboard.getBoundingClientRect();
+          
+          // Calculate offset of first white key relative to keyboard container
+          const firstKeyLeft = firstWhiteKeyRect.left - keyboardRect.left;
+          
+          blackKeyPositions.forEach(([note, whiteKeyIndex]) => {
+            const key = document.createElement('div');
+            key.className = 'key black';
+            key.dataset.note = note;
+            if (state.customScale.includes(noteNames.indexOf(note))) {
+              key.classList.add('selected');
+            }
+            
+            // Calculate position: start of white key + white key width - half black key width
+            // This centers the black key between two white keys
+            const leftPosition = firstKeyLeft + (whiteKeyIndex * whiteKeyWidth) + (whiteKeyWidth - blackKeyWidth / 2);
+            key.style.left = `${leftPosition}px`;
+            
+            key.addEventListener('click', () => {
+              const noteIndex = noteNames.indexOf(note);
+              const index = state.customScale.indexOf(noteIndex);
+              if (index > -1) {
+                state.customScale.splice(index, 1);
+                key.classList.remove('selected');
+              } else {
+                state.customScale.push(noteIndex);
+                key.classList.add('selected');
+              }
+              state.customScale.sort((a, b) => a - b);
+              saveToStorage('wind_chime_custom_scale', JSON.stringify(state.customScale));
+            });
+            keyboard.appendChild(key);
+          });
+        });
+      }
+
+      // Presets
+      const presets = {
+        zen: {
+          scale: 'japanese',
+          material: 'bamboo',
+          sustain: 6.0,
+          windLevel: 0.3,
+          windPattern: 'calm',
+          chimeCount: 5,
+          reverb: 0.2
+        },
+        storm: {
+          scale: 'minor',
+          material: 'metal-tubes',
+          sustain: 3.0,
+          windLevel: 0.9,
+          windPattern: 'stormy',
+          gustProb: 0.7,
+          chimeCount: 8,
+          reverb: 0.1
+        },
+        meditation: {
+          scale: 'pentatonic',
+          material: 'glass',
+          sustain: 8.0,
+          windLevel: 0.2,
+          windPattern: 'calm',
+          gustProb: 0.1,
+          chimeCount: 6,
+          reverb: 0.3
+        },
+        default: {
+          scale: 'pentatonic',
+          material: 'metal-tubes',
+          sustain: 4.0,
+          windLevel: 0.5,
+          windPattern: 'gusty',
+          gustProb: 0.35,
+          chimeCount: 6,
+          reverb: 0.0,
+          transpose: 0,
+          forceRange: 1.0,
+          forceVariability: 0.5,
+          stereoSpread: 1.0,
+          volume: 0.6
+        }
+      };
+
+      function loadPreset(name) {
+        const preset = presets[name];
+        if (!preset) return;
+
+        Object.keys(preset).forEach(key => {
+          if (state.hasOwnProperty(key)) {
+            state[key] = preset[key];
+          }
+        });
+
+        updateUI();
+        saveToStorage('wind_chime_state', JSON.stringify(state));
+      }
+
+      function updateUI() {
+        // Update scale chips
+        document.querySelectorAll('#scaleRow .chip').forEach(chip => {
+          chip.classList.toggle('active', chip.dataset.scale === state.scale);
+        });
+
+        // Update material dropdown
+        document.getElementById('material').value = state.material;
+
+        // Update all sliders
+        document.getElementById('transpose').value = state.transpose;
+        document.getElementById('transposeValue').textContent = `${state.transpose > 0 ? '+' : ''}${state.transpose} semitones`;
+
+        document.getElementById('sustain').value = state.sustain;
+        document.getElementById('sustainValue').textContent = `${state.sustain.toFixed(1)}s`;
+
+        document.getElementById('forceRange').value = state.forceRange;
+        updateForceRangeDisplay();
+
+        document.getElementById('forceVariability').value = state.forceVariability;
+        document.getElementById('forceVariabilityValue').textContent = state.forceVariability.toFixed(2);
+
+        document.getElementById('wind').value = state.windLevel;
+        document.getElementById('windValue').textContent = state.windLevel.toFixed(2);
+
+        document.getElementById('windPattern').value = state.windPattern;
+
+        document.getElementById('gustProb').value = state.gustProb * 100;
+        document.getElementById('gustProbValue').textContent = `${Math.round(state.gustProb * 100)}%`;
+
+        document.getElementById('stereoSpread').value = state.stereoSpread;
+        document.getElementById('stereoSpreadValue').textContent = state.stereoSpread.toFixed(2);
+
+        document.getElementById('chimeCount').value = state.chimeCount;
+        document.getElementById('chimeCountValue').textContent = state.chimeCount;
+
+        document.getElementById('reverb').value = state.reverb;
+        document.getElementById('reverbValue').textContent = state.reverb.toFixed(2);
+
+        document.getElementById('volume').value = state.volume;
+        document.getElementById('volumeValue').textContent = state.volume.toFixed(2);
+
+        document.getElementById('rootNote').value = state.rootNote;
+        document.getElementById('rootNoteValue').textContent = state.rootNote;
+
+        // Show/hide custom scale
+        document.getElementById('customScaleContainer').style.display = 
+          state.scale === 'custom' ? 'block' : 'none';
+
+        // Show/hide custom material
+        document.getElementById('customMaterialContainer').style.display = 
+          state.material === 'custom' ? 'block' : 'none';
+
+        // Update custom material sliders
+        if (state.material === 'custom') {
+          document.getElementById('partial1Ratio').value = state.customMaterial.ratios[0];
+          document.getElementById('partial1RatioValue').textContent = state.customMaterial.ratios[0].toFixed(2);
+          document.getElementById('partial2Ratio').value = state.customMaterial.ratios[1];
+          document.getElementById('partial2RatioValue').textContent = state.customMaterial.ratios[1].toFixed(2);
+          document.getElementById('partial3Ratio').value = state.customMaterial.ratios[2];
+          document.getElementById('partial3RatioValue').textContent = state.customMaterial.ratios[2].toFixed(2);
+          document.getElementById('partial1Amp').value = state.customMaterial.amps[0];
+          document.getElementById('partial1AmpValue').textContent = state.customMaterial.amps[0].toFixed(2);
+          document.getElementById('partial2Amp').value = state.customMaterial.amps[1];
+          document.getElementById('partial2AmpValue').textContent = state.customMaterial.amps[1].toFixed(2);
+          document.getElementById('partial3Amp').value = state.customMaterial.amps[2];
+          document.getElementById('partial3AmpValue').textContent = state.customMaterial.amps[2].toFixed(2);
+        }
+
+        // Update volume
+        if (state.masterGain) {
+          state.masterGain.gain.value = state.volume;
+        }
+
+        // Render keyboard if custom scale
+        if (state.scale === 'custom') {
+          renderKeyboard();
+        }
+      }
+
+      function updateForceRangeDisplay() {
+        const minForce = Math.max(0.3, state.forceRange - state.forceVariability);
+        const maxForce = Math.min(1.5, state.forceRange + state.forceVariability);
+        document.getElementById('forceRangeValue').textContent = 
+          `${minForce.toFixed(2)} - ${maxForce.toFixed(2)}`;
+      }
+
+      // Storage functions
+      function saveToStorage(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {}
+      }
+
+      function readFromStorage(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      // Event listeners
+      document.getElementById('start').addEventListener('click', async () => {
+        setupAudio();
+        if (state.audioCtx.state === 'suspended') {
+          await state.audioCtx.resume();
+        }
+
+        if (!state.running) {
+          state.running = true;
+          document.getElementById('start').classList.add('playing');
+          document.getElementById('start').textContent = '❚❚ Playing';
+          document.getElementById('status').textContent = 'Playing… relax and listen 🌬️';
+          scheduleNextStrike();
+          requestWakeLock();
+        }
+      });
+
+      document.getElementById('stop').addEventListener('click', () => {
+        state.running = false;
+        if (state.schedulerId) {
+          clearTimeout(state.schedulerId);
+          state.schedulerId = null;
+        }
+        document.getElementById('start').classList.remove('playing');
+        document.getElementById('start').textContent = '▶ Play';
+        document.getElementById('status').textContent = 'Stopped';
+        releaseWakeLock();
+      });
+
+      // Scale selection
+      document.querySelectorAll('#scaleRow .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          state.scale = chip.dataset.scale;
+          updateUI();
+          saveToStorage('wind_chime_scale', state.scale);
+        });
+      });
+
+      // Transpose
+      document.getElementById('transpose').addEventListener('input', (e) => {
+        state.transpose = parseInt(e.target.value);
+        document.getElementById('transposeValue').textContent = 
+          `${state.transpose > 0 ? '+' : ''}${state.transpose} semitones`;
+        saveToStorage('wind_chime_transpose', state.transpose);
+      });
+
+      // Root note
+      document.getElementById('rootNote').addEventListener('change', (e) => {
+        state.rootNote = e.target.value;
+        document.getElementById('rootNoteValue').textContent = state.rootNote;
+        saveToStorage('wind_chime_root_note', state.rootNote);
+      });
+
+      // Material
+      document.getElementById('material').addEventListener('change', (e) => {
+        state.material = e.target.value;
+        updateUI();
+        saveToStorage('wind_chime_material', state.material);
+      });
+
+      // Custom material controls
+      document.getElementById('partial1Ratio').addEventListener('input', (e) => {
+        state.customMaterial.ratios[0] = parseFloat(e.target.value);
+        document.getElementById('partial1RatioValue').textContent = e.target.value;
+        saveToStorage('wind_chime_custom_material', JSON.stringify(state.customMaterial));
+      });
+      document.getElementById('partial2Ratio').addEventListener('input', (e) => {
+        state.customMaterial.ratios[1] = parseFloat(e.target.value);
+        document.getElementById('partial2RatioValue').textContent = e.target.value;
+        saveToStorage('wind_chime_custom_material', JSON.stringify(state.customMaterial));
+      });
+      document.getElementById('partial3Ratio').addEventListener('input', (e) => {
+        state.customMaterial.ratios[2] = parseFloat(e.target.value);
+        document.getElementById('partial3RatioValue').textContent = e.target.value;
+        saveToStorage('wind_chime_custom_material', JSON.stringify(state.customMaterial));
+      });
+      document.getElementById('partial1Amp').addEventListener('input', (e) => {
+        state.customMaterial.amps[0] = parseFloat(e.target.value);
+        document.getElementById('partial1AmpValue').textContent = e.target.value;
+        saveToStorage('wind_chime_custom_material', JSON.stringify(state.customMaterial));
+      });
+      document.getElementById('partial2Amp').addEventListener('input', (e) => {
+        state.customMaterial.amps[1] = parseFloat(e.target.value);
+        document.getElementById('partial2AmpValue').textContent = e.target.value;
+        saveToStorage('wind_chime_custom_material', JSON.stringify(state.customMaterial));
+      });
+      document.getElementById('partial3Amp').addEventListener('input', (e) => {
+        state.customMaterial.amps[2] = parseFloat(e.target.value);
+        document.getElementById('partial3AmpValue').textContent = e.target.value;
+        saveToStorage('wind_chime_custom_material', JSON.stringify(state.customMaterial));
+      });
+
+      // Sustain
+      document.getElementById('sustain').addEventListener('input', (e) => {
+        state.sustain = parseFloat(e.target.value);
+        document.getElementById('sustainValue').textContent = `${state.sustain.toFixed(1)}s`;
+        saveToStorage('wind_chime_sustain', state.sustain);
+      });
+
+      // Force range
+      document.getElementById('forceRange').addEventListener('input', (e) => {
+        state.forceRange = parseFloat(e.target.value);
+        updateForceRangeDisplay();
+        saveToStorage('wind_chime_force_range', state.forceRange);
+      });
+
+      // Force variability
+      document.getElementById('forceVariability').addEventListener('input', (e) => {
+        state.forceVariability = parseFloat(e.target.value);
+        document.getElementById('forceVariabilityValue').textContent = state.forceVariability.toFixed(2);
+        updateForceRangeDisplay();
+        saveToStorage('wind_chime_force_variability', state.forceVariability);
+      });
+
+      // Wind
+      document.getElementById('wind').addEventListener('input', (e) => {
+        state.windLevel = parseFloat(e.target.value);
+        document.getElementById('windValue').textContent = state.windLevel.toFixed(2);
+        saveToStorage('wind_chime_wind_level', state.windLevel);
+      });
+
+      // Wind pattern
+      document.getElementById('windPattern').addEventListener('change', (e) => {
+        state.windPattern = e.target.value;
+        saveToStorage('wind_chime_wind_pattern', state.windPattern);
+      });
+
+      // Gust probability
+      document.getElementById('gustProb').addEventListener('input', (e) => {
+        state.gustProb = parseFloat(e.target.value) / 100;
+        document.getElementById('gustProbValue').textContent = `${Math.round(state.gustProb * 100)}%`;
+        saveToStorage('wind_chime_gust_prob', state.gustProb);
+      });
+
+      // Stereo spread
+      document.getElementById('stereoSpread').addEventListener('input', (e) => {
+        state.stereoSpread = parseFloat(e.target.value);
+        document.getElementById('stereoSpreadValue').textContent = state.stereoSpread.toFixed(2);
+        saveToStorage('wind_chime_stereo_spread', state.stereoSpread);
+      });
+
+      // Chime count
+      document.getElementById('chimeCount').addEventListener('input', (e) => {
+        state.chimeCount = parseInt(e.target.value);
+        document.getElementById('chimeCountValue').textContent = state.chimeCount;
+        saveToStorage('wind_chime_count', state.chimeCount);
+      });
+
+      // Reverb
+      document.getElementById('reverb').addEventListener('input', (e) => {
+        state.reverb = parseFloat(e.target.value);
+        document.getElementById('reverbValue').textContent = state.reverb.toFixed(2);
+        saveToStorage('wind_chime_reverb', state.reverb);
+        // Would need to recreate audio nodes for reverb, simplified for now
+      });
+
+      // Volume
+      document.getElementById('volume').addEventListener('input', (e) => {
+        state.volume = parseFloat(e.target.value);
+        document.getElementById('volumeValue').textContent = state.volume.toFixed(2);
+        if (state.masterGain) {
+          state.masterGain.gain.value = state.volume;
+        }
+        saveToStorage('wind_chime_volume', state.volume);
+      });
+
+      // Presets
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          loadPreset(btn.dataset.preset);
+        });
+      });
+
+      // Load from storage
+      function initFromStorage() {
+        const storedScale = readFromStorage('wind_chime_scale');
+        if (storedScale) state.scale = storedScale;
+
+        const storedTranspose = readFromStorage('wind_chime_transpose');
+        if (storedTranspose) state.transpose = parseInt(storedTranspose);
+
+        const storedRootNote = readFromStorage('wind_chime_root_note');
+        if (storedRootNote) state.rootNote = storedRootNote;
+
+        const storedMaterial = readFromStorage('wind_chime_material');
+        if (storedMaterial) state.material = storedMaterial;
+
+        const storedSustain = readFromStorage('wind_chime_sustain');
+        if (storedSustain) state.sustain = parseFloat(storedSustain);
+
+        const storedForceRange = readFromStorage('wind_chime_force_range');
+        if (storedForceRange) state.forceRange = parseFloat(storedForceRange);
+
+        const storedForceVariability = readFromStorage('wind_chime_force_variability');
+        if (storedForceVariability) state.forceVariability = parseFloat(storedForceVariability);
+
+        const storedWindLevel = readFromStorage('wind_chime_wind_level');
+        if (storedWindLevel) state.windLevel = parseFloat(storedWindLevel);
+
+        const storedWindPattern = readFromStorage('wind_chime_wind_pattern');
+        if (storedWindPattern) state.windPattern = storedWindPattern;
+
+        const storedGustProb = readFromStorage('wind_chime_gust_prob');
+        if (storedGustProb) state.gustProb = parseFloat(storedGustProb);
+
+        const storedStereoSpread = readFromStorage('wind_chime_stereo_spread');
+        if (storedStereoSpread) state.stereoSpread = parseFloat(storedStereoSpread);
+
+        const storedChimeCount = readFromStorage('wind_chime_count');
+        if (storedChimeCount) state.chimeCount = parseInt(storedChimeCount);
+
+        const storedReverb = readFromStorage('wind_chime_reverb');
+        if (storedReverb) state.reverb = parseFloat(storedReverb);
+
+        const storedVolume = readFromStorage('wind_chime_volume');
+        if (storedVolume) state.volume = parseFloat(storedVolume);
+
+        const storedCustomScale = readFromStorage('wind_chime_custom_scale');
+        if (storedCustomScale) {
+          try {
+            state.customScale = JSON.parse(storedCustomScale);
+          } catch (e) {}
+        }
+
+        const storedCustomMaterial = readFromStorage('wind_chime_custom_material');
+        if (storedCustomMaterial) {
+          try {
+            state.customMaterial = JSON.parse(storedCustomMaterial);
+          } catch (e) {}
+        }
+      }
+
+      // Initialize
+      window.addEventListener('load', () => {
+        initFromStorage();
+        updateUI();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('beforeunload', releaseWakeLock);
+      });
+    })();
+  </script>
+</body>
+</html>

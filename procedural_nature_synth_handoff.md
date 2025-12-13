@@ -1,8 +1,17 @@
 # Procedural Nature Synth — Developer Handoff Notes
 
-Project goal: a single-file (or small bundle) HTML/JS Web Audio app that generates calming “natural soundscapes” **procedurally** (no samples by default), using **modules + macro knobs + presets**, with smooth transitions and a mobile-friendly UI (iOS Safari).
+Project goal: a single-file (nature-sounds.html) (or small bundle) HTML/JS Web Audio app that generates calming "natural soundscapes" **procedurally** (no samples by default), using **modules + macro knobs + presets**, with smooth transitions and a mobile-friendly UI (iOS Safari).
 
 This handoff references the current baseline implementation (Noise AudioWorklet + modules: Rain, Wind, Ocean, Fire, Crickets, Stream) and outlines how to extend it to additional sounds and features discussed.
+
+## Deployment
+
+The app is deployed on **Cloudflare Pages** for fast global CDN delivery and automatic HTTPS. The single-file HTML architecture makes it ideal for static hosting.
+
+- All files are served as static assets
+- No build process required
+- Automatic deployments from git repository
+- Global CDN ensures low latency worldwide
 
 ---
 
@@ -31,11 +40,13 @@ Guideline:
 Current:
 - `AudioWorkletNode` `noise-gen` supports types:
   - `0=white`, `1=pink approx`, `2=brown-ish`
+- **CORS fix**: Uses data URL (base64) instead of blob URL for AudioWorklet to avoid CORS issues
+- **Fallback**: ScriptProcessorNode fallback for browsers without AudioWorklet support
 - Utilities:
   - `lerp`, `expRand`, `setParam`, etc.
 Add / improve:
-- Stereo: use 2-channel buses or add a “stereo widener” (dual filters with slight decorrelation).
-- Global random LFO: a simple “smooth random” generator per module.
+- Stereo: use 2-channel buses or add a "stereo widener" (dual filters with slight decorrelation).
+- Global random LFO: a simple "smooth random" generator per module.
 
 ---
 
@@ -82,9 +93,10 @@ Add / improve:
 1. **Crossfade improvements**
    - Right now: delayed stop + param smoothing.
    - Better: per-module gain “fade node” so enabling/disabling is click-free and truly crossfaded.
-2. **Wake Lock**
-   - Optional: `navigator.wakeLock.request('screen')` during playback.
-   - Handle `visibilitychange` to re-request.
+2. **Wake Lock** ✅ **IMPLEMENTED**
+   - Uses `navigator.wakeLock.request('screen')` during playback.
+   - Handles `visibilitychange` to re-request when tab becomes visible.
+   - Gracefully degrades on unsupported browsers.
 3. **Sleep timer**
    - 15/30/60/90 min, fade out over last 10–20 seconds.
 4. **Responsive UI**
@@ -232,13 +244,19 @@ Future scheduler improvement:
 
 ## 7. UI / UX Enhancements
 
-### 7.1 Controls
-- Keep current macro sliders; add optional “Advanced” accordion:
-  - per-module volume
-  - per-module “character” knob (e.g., rain drop size, wind tree/grass mix)
-- Add “Scene” chips: toggling multiple modules quickly.
+### 7.1 Theme ✅ **IMPLEMENTED**
+- Dark theme matching other apps in the project (noise-generator, wind-chime)
+- Consistent color scheme with CSS variables
+- Modern card-based layout with backdrop blur
+- Responsive design for mobile devices
 
-### 7.2 Smooth transitions
+### 7.2 Controls
+- Keep current macro sliders; add optional "Advanced" accordion:
+  - per-module volume
+  - per-module "character" knob (e.g., rain drop size, wind tree/grass mix)
+- Add "Scene" chips: toggling multiple modules quickly.
+
+### 7.3 Smooth transitions
 - Implement per-module `fadeGain`:
   - Module internal output → `fadeGain` → bus
 - On enable:
@@ -246,7 +264,7 @@ Future scheduler improvement:
 - On disable:
   - ramp down then stop+disconnect
 
-### 7.3 Persistence
+### 7.4 Persistence
 - Save UI state to `localStorage` every change:
   - last category/preset, macro values, toggles.
 
